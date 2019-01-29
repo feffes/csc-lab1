@@ -12,15 +12,16 @@
 #include <sys/types.h>
 #include <crypt.h>
 #include "pwent.h"
-/* Uncomment next line in step 2 */
-/* #include "pwent.h" */
+
 
 #define TRUE 1
 #define FALSE 0
 #define LENGTH 20
 
 void sighandler() {
-
+    sigset_t mask;
+    sigfillset(&mask);
+    sigprocmask(SIG_SETMASK, &mask, NULL);
 	/* add signalhandling routines here */
 	/* see 'man 2 signal' */
 }
@@ -75,31 +76,38 @@ int main(int argc, char *argv[]) {
 		if (passwddata != NULL) {
 			/* You have to encrypt user_pass for this to work */
 			/* Don't forget to include the salt */
+            if (passwddata->pwfailed<20) {
+                if (compareCrypt(user_pass, passwddata->passwd, passwddata->passwd_salt)) {
 
-			if (compareCrypt(user_pass, passwddata->passwd, passwddata->passwd_salt)) {
+                    
 
-                if (passwddata->pwfailed>0) {
-                    printf("Number of failed attempts since last login: %d\n",passwddata->pwfailed);
+                    if (passwddata->pwfailed>0) {
+                        printf("Number of failed attempts since last login: %d\n",passwddata->pwfailed);
+                    }
+                    passwddata->pwfailed=0;
+                    passwddata->pwage+=1;
+                    mysetpwent(passwddata->pwname, passwddata);
+
+                    printf(" You're in !\n");
+                    if (passwddata->pwage>10) {
+                        printf(" yo, your password is old man, better change it\n");
+                    }
+                    setuid(passwddata->uid);
+                    execv("/bin/sh", NULL);
+                    
+
+                    /*  check UID, see setuid(2) */
+                    /*  start a shell, use execve(2) */
+
+                } else {
+                    passwddata->pwfailed+=1;
+                    mysetpwent(passwddata->pwname, passwddata);
+                    printf("Login Incorrect \n");
                 }
-                passwddata->pwfailed=0;
-                passwddata->pwage+=1;
-                mysetpwent(passwddata->pwname, passwddata);
-
-				printf(" You're in !\n");
-                if (passwddata->pwage>10) {
-                    printf(" yo, your password is old man, better change it\n");
-                }
-                
-                
-
-				/*  check UID, see setuid(2) */
-				/*  start a shell, use execve(2) */
-
-			} else {
-                passwddata->pwfailed+=1;
-                mysetpwent(passwddata->pwname, passwddata);
-                printf("Login Incorrect \n");
+            }else{
+                printf("Too many failed attempts\n");
             }
+            
             
 		} else {
             printf("No such user \n");

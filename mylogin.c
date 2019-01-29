@@ -25,6 +25,13 @@ void sighandler() {
 	/* see 'man 2 signal' */
 }
 
+int compareCrypt(char* password, char* encrypted, char* salt){
+    char *temp;
+    temp = crypt(password, salt);
+    return !strcmp(encrypted, temp);
+}
+
+
 int main(int argc, char *argv[]) {
 
 	mypwent *passwddata; /* this has to be redefined in step 2 */
@@ -69,14 +76,28 @@ int main(int argc, char *argv[]) {
 			/* You have to encrypt user_pass for this to work */
 			/* Don't forget to include the salt */
 
-			if (!strcmp(user_pass, passwddata->passwd)) {
+			if (compareCrypt(user_pass, passwddata->passwd, passwddata->passwd_salt)) {
+
+                if (passwddata->pwfailed>0) {
+                    printf("Number of failed attempts since last login: %d\n",passwddata->pwfailed);
+                }
+                passwddata->pwfailed=0;
+                passwddata->pwage+=1;
+                mysetpwent(passwddata->pwname, passwddata);
 
 				printf(" You're in !\n");
+                if (passwddata->pwage>10) {
+                    printf(" yo, your password is old man, better change it\n");
+                }
+                
+                
 
 				/*  check UID, see setuid(2) */
 				/*  start a shell, use execve(2) */
 
 			} else {
+                passwddata->pwfailed+=1;
+                mysetpwent(passwddata->pwname, passwddata);
                 printf("Login Incorrect \n");
             }
             

@@ -17,7 +17,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define LENGTH 16
+#define LENGTH 20
 
 void sighandler() {
 
@@ -53,9 +53,9 @@ int main(int argc, char *argv[]) {
 		fflush(NULL); /* Flush all  output buffers */
 		__fpurge(stdin); /* Purge any data in stdin buffer */
 
-		if (gets(user) == NULL) /* gets() is vulnerable to buffer */
-			exit(0); /*  overflow attacks.  */
-
+		if (fgets(user, 20, stdin) == NULL)
+			exit(0);/*   overflow attacks.  */
+        strtok(user, "\n");
 		/* check to see if important variable is intact after input of login name - do not remove */
 		printf("Value of variable 'important 1' after input of login name: %*.*s\n",
 				LENGTH - 1, LENGTH - 1, important1);
@@ -76,14 +76,13 @@ int main(int argc, char *argv[]) {
 				/*  check UID, see setuid(2) */
 				/*  start a shell, use execve(2) */
 
-			}
-            else
-            {
+			} else {
                 printf("Login Incorrect \n");
-
             }
             
-		}
+		} else {
+            printf("No such user \n");
+        }
 	}
 	return 0;
 }

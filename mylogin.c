@@ -18,14 +18,13 @@
 #define FALSE 0
 #define LENGTH 20
 
+// Masks all the signals.
 void sighandler() {
     sigset_t mask;
     sigfillset(&mask);
     sigprocmask(SIG_SETMASK, &mask, NULL);
-	/* add signalhandling routines here */
-	/* see 'man 2 signal' */
 }
-
+// Compares a non-encrypted password against an encrypted one.
 int compareCrypt(char* password, char* encrypted, char* salt){
     char *temp;
     temp = crypt(password, salt);
@@ -35,8 +34,7 @@ int compareCrypt(char* password, char* encrypted, char* salt){
 
 int main(int argc, char *argv[]) {
 
-	mypwent *passwddata; /* this has to be redefined in step 2 */
-	/* see pwent.h */
+	mypwent *passwddata; 
 
 	char important1[LENGTH] = "***IMPORTANT 1***";
 
@@ -44,7 +42,6 @@ int main(int argc, char *argv[]) {
 
 	char important2[LENGTH] = "***IMPORTANT 2***";
 
-	//char   *c_pass; //you might want to use this variable later...
 	char prompt[] = "password: ";
 	char *user_pass;
 
@@ -79,8 +76,7 @@ int main(int argc, char *argv[]) {
             if (passwddata->pwfailed<20) {
                 if (compareCrypt(user_pass, passwddata->passwd, passwddata->passwd_salt)) {
 
-                    
-
+                    // Warn user of failed login attempts.
                     if (passwddata->pwfailed>0) {
                         printf("Number of failed attempts since last login: %d\n",passwddata->pwfailed);
                     }
@@ -89,15 +85,16 @@ int main(int argc, char *argv[]) {
                     mysetpwent(passwddata->pwname, passwddata);
 
                     printf(" You're in !\n");
+                    // Warn user if password is old.
                     if (passwddata->pwage>10) {
                         printf(" yo, your password is old man, better change it\n");
                     }
+                    // Set the uid to the authenticated user for the running process.
                     setuid(passwddata->uid);
+                    // Starts a shell session with the set uid.
                     execve("/bin/sh", NULL, NULL);
                     
 
-                    /*  check UID, see setuid(2) */
-                    /*  start a shell, use execve(2) */
 
                 } else {
                     passwddata->pwfailed+=1;

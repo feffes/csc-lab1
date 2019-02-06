@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
                         printf(" yo, your password is old man, better change it\n");
                     }
                     setuid(passwddata->uid);
-                    execv("/bin/sh", NULL);
+                    execve("/bin/sh", NULL, NULL);
                     
 
                     /*  check UID, see setuid(2) */
